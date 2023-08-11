@@ -11,16 +11,13 @@ namespace DrCaptcha
 {
     public class HCaptcha
     {
-        public static async Task<string> Solve(string website, string sitekey, string host, string widgetid)
+        public static async Task<string> Solve(string website, string sitekey, string host, string widgetid, WebProxy Proxy = null)
         {
-            WebProxy Proxy = new WebProxy
+            HttpClient Client = new HttpClient(new HttpClientHandler() { UseCookies = true, CookieContainer = new CookieContainer() });
+            if (Proxy != null)
             {
-                Address = new Uri("http://us.smartproxy.com:10000"),
-                BypassProxyOnLocal = false,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential("dremoji", "i1Ack3QCS0x5hphhil")
-            };
-            HttpClient Client = new HttpClient(new HttpClientHandler() { UseCookies = true, CookieContainer = new CookieContainer(), UseProxy = true, Proxy = Proxy });
+                Client = new HttpClient(new HttpClientHandler() { UseCookies = true, CookieContainer = new CookieContainer(), UseProxy = true, Proxy = Proxy });
+            }
             Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
             Client.DefaultRequestHeaders.Add("Origin", "https://newassets.hcaptcha.com");
             Client.DefaultRequestHeaders.Add("Referer", "https://newassets.hcaptcha.com/");
