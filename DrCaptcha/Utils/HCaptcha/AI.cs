@@ -1,9 +1,9 @@
-﻿using Clarifai.Api;
-using Clarifai.Channels;
-using Grpc.Core;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
@@ -12,26 +12,30 @@ namespace DrCaptcha.Utils.HCaptcha
 {
     internal class AI
     {
-        static bool FindMatchingSubword(string keyword, string predictedConcepts)
-        {
-            string[] conceptsArray = predictedConcepts.Split('\n');
+        internal static string apiKey = "48e4bb33c47747378d4c2f9a115aa06f";
+        internal static string modelId = "aaa03c23b3724a16a56b629203edc62c";
 
-            if (Array.Exists(conceptsArray, concept => concept.Contains(keyword)))
+        static bool FindMatchingSubword(string keyword, string predicted)
+        {
+
+            if (predicted == keyword)
             {
                 return true;
             }
 
-            foreach (string predictedWord in conceptsArray)
+            if (keyword.Contains(predicted))
             {
-                for (int i = 0; i < predictedWord.Length; i++)
+                return true;
+            }
+
+            for (int i = 0; i < predicted.Length; i++)
+            {
+                for (int j = i + 4; j <= predicted.Length; j++)
                 {
-                    for (int j = i + 4; j <= predictedWord.Length; j++)
+                    string subword = predicted.Substring(i, j - i);
+                    if (subword.Length > 4 && keyword.Contains(subword))
                     {
-                        string subword = predictedWord.Substring(i, j - i);
-                        if (subword.Length > 4 && keyword.Contains(subword))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -40,45 +44,56 @@ namespace DrCaptcha.Utils.HCaptcha
 
         public static string[] Recognise(dynamic task, string keyword)
         {
-            V2.V2Client client = new V2.V2Client(ClarifaiChannel.Grpc());
-            Metadata metadata = new Metadata
-             {
-                {"Authorization", "Key 48e4bb33c47747378d4c2f9a115aa06f"}
-            };
             string imagelink = task["datapoint_uri"].ToString();
             string taskkey = task["task_key"].ToString();
-            var response = client.PostModelOutputs(
-                new PostModelOutputsRequest()
+            string payload = JsonConvert.SerializeObject(new
+            {
+                inputs = new[]
+            {
+                new
                 {
-                    ModelId = "aaa03c23b3724a16a56b629203edc62c", // <- This is the general model_id
-                    Inputs =
+                    data = new
                     {
-                        new List<Input>()
+                        image = new
                         {
-                            new Input()
-                            {
-                                Data = new Data()
-                                {
-                                    Image = new Clarifai.Api.Image()
-                                    {
-                                        Url = imagelink
-                                    }
-                                }
-                            }
+                            url = imagelink
                         }
                     }
-                },
-                metadata
-            );
-            foreach (var concept in response.Outputs[0].Data.Concepts)
-            {
-                bool result = FindMatchingSubword(keyword, concept.Name);
-                if (result)
-                {
-                    return new string[] { taskkey, "true" };
                 }
             }
-            return new string[] { taskkey, "false" };
+            });
+
+            WebRequest request = WebRequest.Create($"https://api.clarifai.com/v2/models/{modelId}/outputs");
+            request.Method = "POST";
+            request.Headers.Add("Authorization", "Key " + apiKey);
+            request.ContentType = "application/json";
+
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            {
+                streamWriter.Write(payload);
+            }
+
+            try
+            {
+                WebResponse response = request.GetResponse();
+                var streamReader = new StreamReader(response.GetResponseStream());
+                string responseContent = streamReader.ReadToEnd();
+                dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
+                foreach (dynamic concept in jsonResponse["outputs"][0]["data"]["concepts"])
+                {
+                    bool result = FindMatchingSubword(keyword, concept["name"].ToString());
+                    if (result)
+                    {
+                        return new string[] { taskkey, "true" };
+                    };
+                }
+                return new string[] { taskkey, "false" };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new string[] { taskkey, "false" };
+            }
         }
     }
 }
