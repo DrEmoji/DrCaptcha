@@ -96,7 +96,7 @@ namespace DrCaptcha.Utils.HCaptcha
             return host;
         }
 
-        public static HttpClient CreateClient(WebProxy Proxy)
+        public static HttpClient CreateClient(WebProxy Proxy = null)
         {
             HttpClient Client = new HttpClient(new HttpClientHandler() { UseCookies = true, CookieContainer = new CookieContainer() });
             if (Proxy != null)
@@ -108,7 +108,6 @@ namespace DrCaptcha.Utils.HCaptcha
             Client.DefaultRequestHeaders.Add("Referer", "https://newassets.hcaptcha.com/");
             return Client;
         }
-
         public static string GetKeyword(dynamic captcha)
         {
             string question = captcha["requester_question"]["en"].ToString();
@@ -123,19 +122,6 @@ namespace DrCaptcha.Utils.HCaptcha
             {
                 return question.Split(' ')[4];
             }
-        }
-
-        public static int[] FindRelativePosition(dynamic bbox)
-        {
-            double topRow = (double)bbox["top_row"];
-            double leftCol = (double)bbox["left_col"];
-            double bottomRow = (double)bbox["bottom_row"];
-            double rightCol = (double)bbox["right_col"];
-
-            int pixelsToRight = (int)((leftCol + rightCol) * 0.5 * 256);
-            int pixelsDown = (int)((topRow + bottomRow) * 0.5 * 256);
-
-            return new int[] { pixelsToRight, pixelsDown};
         }
 
         public static int GetUniqueInt(int min, int max)
