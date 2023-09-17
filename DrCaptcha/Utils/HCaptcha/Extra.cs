@@ -12,6 +12,7 @@ namespace DrCaptcha.Utils.HCaptcha
     internal class Extra
     {
         private static char[] numbers = "123456789".ToCharArray();
+        public static string[] BlacklistedCaptchas = { "something you can eat" };
         public static long GetTimestamp()
         {
             return ((DateTimeOffset)DateTime.UtcNow.ToUniversalTime()).ToUniversalTime().ToUnixTimeMilliseconds();

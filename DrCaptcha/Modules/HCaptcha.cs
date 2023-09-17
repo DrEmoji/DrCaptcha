@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net;
+using System;
 
 namespace DrCaptcha.Modules
 {
@@ -34,14 +35,14 @@ namespace DrCaptcha.Modules
                     dynamic siteData = API.CheckSiteKey(Client, version, host, sitekey).Result;
                     string siteReq = siteData["c"]["req"].ToString();
                     c = $"{{\"type\":\"hsw\",\"req\":\"{siteReq}\"}}";
-                    hsw = HSWSolver.GetRequest(siteReq);
-                    captcha = API.GetCaptcha(Client, version, host, sitekey, c, hsw, motionData);
+                    hsw = HSWSolver.Solve(siteReq);
+                    captcha = API.GetCaptcha(Client, version, host, sitekey, c, hsw, motionData).Result;
                     if (captcha["request_type"].ToString() == "image_label_binary") break;
                 }
                 string key = captcha["key"];
                 string captchaReq = captcha["c"]["req"].ToString();
                 c = $"{{\"type\":\"hsw\",\"req\":\"{captchaReq}\"}}";
-                hsw = HSWSolver.GetRequest(captchaReq);
+                hsw = HSWSolver.Solve(captchaReq);
                 string keyword = Extra.GetKeyword(captcha);
                 dynamic captchaResponse;
                 Dictionary<string, string> answers = new Dictionary<string, string>();

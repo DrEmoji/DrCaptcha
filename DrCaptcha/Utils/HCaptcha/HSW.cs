@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Interactions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace DrCaptcha.Utils.HCaptcha
         {
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("--headless");
+            chromeOptions.AddArgument("--log-level=3");
 
             driver = new ChromeDriver(chromeOptions);
 
@@ -30,7 +32,7 @@ namespace DrCaptcha.Utils.HCaptcha
             script = new System.Net.WebClient().DownloadString("https://newassets.hcaptcha.com/c/31892fb/hsw.js");
         }
 
-        public string GetRequest(string request)
+        public string Solve(string request)
         {
 
             // Execute the HSW function in the browser context
