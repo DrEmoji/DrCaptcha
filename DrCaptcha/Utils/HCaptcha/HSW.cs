@@ -27,7 +27,7 @@ namespace DrCaptcha.Utils.HCaptcha
 
             driver.Navigate().GoToUrl("https://example.com");
 
-            script = System.IO.File.ReadAllText("hsw.js");
+            script = new System.Net.WebClient().DownloadString("https://newassets.hcaptcha.com/c/31892fb/hsw.js");
         }
 
         public string GetRequest(string request)
