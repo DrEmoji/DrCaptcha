@@ -25,18 +25,6 @@ namespace DrCaptcha.Utils.HCaptcha
             return JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result);
         }
 
-        public static async Task<string> GetHsw(HttpClient Client, string req)
-        {
-            string payload = JsonConvert.SerializeObject(new
-            {
-                script = "https://newassets.hcaptcha.com/c/0d3295f3/hsw.js",
-                req = req
-            });
-            var content = new StringContent(payload, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await Client.PostAsync(new Uri("https://hcaptcha.vxxx.cf/hsw"), content);
-            return JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result)["result"];
-        }
-
         public static async Task<string> GetVersion(HttpClient Client)
         {
             HttpResponseMessage response = await Client.GetAsync("https://hcaptcha.com/1/api.js");
