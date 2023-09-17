@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -84,15 +85,59 @@ namespace DrCaptcha.Utils.HCaptcha
                 "}";
         }
 
-        public static byte[] DownloadImage(HttpClient Client, string imageUrl)
+        public static string GetHost(string url)
         {
-            return Client.GetAsync(imageUrl).Result.Content.ReadAsByteArrayAsync().Result;
+            string host = url.Split('/')[2];
+            string[] sub = host.Split('.');
+            if (sub.Length > 2)
+            {
+                host = $"{sub[1]}.{sub[2]}";
+            }
+            return host;
         }
 
-        public static string ImageToBase64(HttpClient Client, string imageUrl)
+        public static HttpClient CreateClient(WebProxy Proxy)
         {
-            return Convert.ToBase64String(DownloadImage(Client, imageUrl));
+            HttpClient Client = new HttpClient(new HttpClientHandler() { UseCookies = true, CookieContainer = new CookieContainer() });
+            if (Proxy != null)
+            {
+                Client = new HttpClient(new HttpClientHandler() { UseCookies = true, CookieContainer = new CookieContainer(), UseProxy = true, Proxy = Proxy });
+            }
+            Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
+            Client.DefaultRequestHeaders.Add("Origin", "https://newassets.hcaptcha.com");
+            Client.DefaultRequestHeaders.Add("Referer", "https://newassets.hcaptcha.com/");
+            return Client;
         }
+
+        public static string GetKeyword(dynamic captcha)
+        {
+            string question = captcha["requester_question"]["en"].ToString();
+            if (question.Contains("each"))
+            {
+                string searchText = "Please click each image containing a";
+                int startIndex = question.IndexOf(searchText);
+                string keyword = question.Substring(startIndex + searchText.Length);
+                return keyword;
+            }
+            else
+            {
+                return question.Split(' ')[4];
+            }
+        }
+
+        public static int[] FindRelativePosition(dynamic bbox)
+        {
+            double topRow = (double)bbox["top_row"];
+            double leftCol = (double)bbox["left_col"];
+            double bottomRow = (double)bbox["bottom_row"];
+            double rightCol = (double)bbox["right_col"];
+
+            int pixelsToRight = (int)((leftCol + rightCol) * 0.5 * 256);
+            int pixelsDown = (int)((topRow + bottomRow) * 0.5 * 256);
+
+            return new int[] { pixelsToRight, pixelsDown};
+        }
+
         public static int GetUniqueInt(int min, int max)
         {
             int theResult = 0;
