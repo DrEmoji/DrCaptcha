@@ -43,7 +43,6 @@ namespace DrCaptcha.Modules
                 c = $"{{\"type\":\"hsw\",\"req\":\"{captchaReq}\"}}";
                 hsw = API.GetHsw(Client, captchaReq).Result;
                 string keyword = Extra.GetKeyword(captcha);
-                Console.WriteLine(keyword);
                 dynamic captchaResponse;
                 Dictionary<string, string> answers = new Dictionary<string, string>();
                 foreach (dynamic task in captcha["tasklist"])

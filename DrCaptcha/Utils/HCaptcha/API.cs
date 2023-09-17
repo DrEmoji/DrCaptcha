@@ -13,11 +13,9 @@ namespace DrCaptcha.Utils.HCaptcha
 {
     internal class API
     {
-        internal static string apiKey = "6aa68b6bfc434896b6e48195ef8a2899";
-        internal static string modelId = "aaa03c23b3724a16a56b629203edc62c";
-        internal static string PAT = "6d55ecadf5914b1e883af844d9f8e5e9";
-        internal static string PosmodelId = "general-image-detection";
-        internal static string PosModelVersion = "1580bb1932594c93b7e2e04456af7c6f";
+        internal static string apiKey = "f4ff298a4a304ac18b0145456afa17ea";
+        internal static string modelId = "general-image-recognition";
+        internal static string modelversion = "aa7f35c01e0642fda5cf400f543e7c40";
         public static async Task<dynamic> CheckSiteKey(HttpClient Client, string version, string host, string sitekey)
         {
             HttpResponseMessage response = await Client.PostAsync($"https://api2.hcaptcha.com/checksiteconfig?v={version}&host={host}&sitekey={sitekey}&sc=1&swa=1&spst=0", null);
@@ -79,7 +77,7 @@ namespace DrCaptcha.Utils.HCaptcha
             }
             });
 
-            WebRequest request = WebRequest.Create($"https://api.clarifai.com/v2/models/{modelId}/outputs");
+            WebRequest request = WebRequest.Create($"https://api.clarifai.com/v2/users/clarifai/apps/main/models/{modelId}/versions/{modelversion}/outputs");
             request.Method = "POST";
             request.Headers.Add("Authorization", "Key " + apiKey);
             request.ContentType = "application/json";
@@ -95,7 +93,6 @@ namespace DrCaptcha.Utils.HCaptcha
                 var streamReader = new StreamReader(response.GetResponseStream());
                 string responseContent = streamReader.ReadToEnd();
                 dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
-                Console.WriteLine(jsonResponse);
                 foreach (dynamic concept in jsonResponse["outputs"][0]["data"]["concepts"])
                 {
                     bool result = keyword.Contains(concept["name"].ToString());
