@@ -95,6 +95,7 @@ namespace DrCaptcha.Utils.HCaptcha
                 var streamReader = new StreamReader(response.GetResponseStream());
                 string responseContent = streamReader.ReadToEnd();
                 dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
+                Console.WriteLine(jsonResponse);
                 foreach (dynamic concept in jsonResponse["outputs"][0]["data"]["concepts"])
                 {
                     bool result = keyword.Contains(concept["name"].ToString());
@@ -110,6 +111,17 @@ namespace DrCaptcha.Utils.HCaptcha
                 Console.WriteLine(ex.Message);
                 return new string[] { taskkey, "false" };
             }
+        }
+
+        public static async Task<string> GetHsw(HttpClient Client, string req)
+        {
+            string payload = JsonConvert.SerializeObject(new
+            {
+                request = req
+            });
+            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await Client.PostAsync(new Uri("http://127.0.0.1:5000/hsw"), content);
+            return JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result)["hsw"];
         }
 
         public static async Task<dynamic> SubmitCaptcha(HttpClient Client, string version, string host, string sitekey, string key, string c, string n, string motiondata, Dictionary<string, string> answers)

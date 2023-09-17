@@ -11,7 +11,6 @@ namespace DrCaptcha.Modules
         public class HCaptchaSolver
         {
             static string widgetid = "0gdec1jq6oa";
-            static HSW HSWSolver = new HSW();
             public WebProxy WebProxy { get; set; }
             public HCaptchaSolver(WebProxy proxy = null)
             {
@@ -35,15 +34,16 @@ namespace DrCaptcha.Modules
                     dynamic siteData = API.CheckSiteKey(Client, version, host, sitekey).Result;
                     string siteReq = siteData["c"]["req"].ToString();
                     c = $"{{\"type\":\"hsw\",\"req\":\"{siteReq}\"}}";
-                    hsw = HSWSolver.Solve(siteReq);
+                    hsw = API.GetHsw(Client, siteReq).Result;
                     captcha = API.GetCaptcha(Client, version, host, sitekey, c, hsw, motionData).Result;
                     if (captcha["request_type"].ToString() == "image_label_binary") break;
                 }
                 string key = captcha["key"];
                 string captchaReq = captcha["c"]["req"].ToString();
                 c = $"{{\"type\":\"hsw\",\"req\":\"{captchaReq}\"}}";
-                hsw = HSWSolver.Solve(captchaReq);
+                hsw = API.GetHsw(Client, captchaReq).Result;
                 string keyword = Extra.GetKeyword(captcha);
+                Console.WriteLine(keyword);
                 dynamic captchaResponse;
                 Dictionary<string, string> answers = new Dictionary<string, string>();
                 foreach (dynamic task in captcha["tasklist"])
@@ -55,6 +55,7 @@ namespace DrCaptcha.Modules
                 if (captchaResponse["pass"] == true)
                     return captchaResponse["generated_pass_UUID"];
                 else
+                    Console.WriteLine("Failed.. Retrying...");
                     return Solve(website, sitekey);
             }
         }
