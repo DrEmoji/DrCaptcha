@@ -68,6 +68,9 @@
   <ItemGroup>
     <Compile Include="Modules\HCaptcha.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Recognizer\HCaptcha\Clarifai.cs" />
+    <Compile Include="Recognizer\HCaptcha\HCaptchaRecognizer.cs" />
+    <Compile Include="Recognizer\HCaptcha\Guesser.cs" />
     <Compile Include="Utils\HCaptcha\API.cs" />
     <Compile Include="Utils\HCaptcha\Extra.cs" />
   </ItemGroup>

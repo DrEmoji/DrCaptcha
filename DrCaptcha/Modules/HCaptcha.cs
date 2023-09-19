@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net;
 using System;
+using DrCaptcha.Recognizer.HCaptcha;
 
 namespace DrCaptcha.Modules
 {
@@ -12,8 +13,10 @@ namespace DrCaptcha.Modules
         {
             static string widgetid = "0gdec1jq6oa";
             public WebProxy WebProxy { get; set; }
-            public HCaptchaSolver(WebProxy proxy = null)
+            private HCaptchaRecognizer Recognizer { get; set; }
+            public HCaptchaSolver(HCaptchaRecognizer recognizer, WebProxy proxy = null)
             {
+                Recognizer = recognizer;
                 if (proxy != null) WebProxy = proxy;
             }
 
@@ -42,12 +45,14 @@ namespace DrCaptcha.Modules
                 string captchaReq = captcha["c"]["req"].ToString();
                 c = $"{{\"type\":\"hsw\",\"req\":\"{captchaReq}\"}}";
                 hsw = API.GetHsw(Client, captchaReq).Result;
-                string keyword = Extra.GetKeyword(captcha);
+                Console.WriteLine(captcha);
+                string[] keywords = Recognizer.GrabKeywords(captcha);
                 dynamic captchaResponse;
                 Dictionary<string, string> answers = new Dictionary<string, string>();
                 foreach (dynamic task in captcha["tasklist"])
                 {
-                    string[] answer = API.Recognize(task, keyword);
+                    string[] answer = Recognizer.Recognize(task, keywords);
+                    Console.WriteLine(answer[0] + " - " + answer[1]);
                     answers.Add(answer[0], answer[1]);
                 }
                 captchaResponse = API.SubmitCaptcha(Client, version, host, sitekey, key, c, hsw, motionData, answers).Result;
