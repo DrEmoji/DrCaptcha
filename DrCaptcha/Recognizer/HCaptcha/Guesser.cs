@@ -12,9 +12,6 @@ namespace DrCaptcha.Recognizer.HCaptcha
     public class GuesserRecognizer : HCaptchaRecognizer
     {
         internal static Random random = new Random();
-        public GuesserRecognizer()
-        {
-        }
 
         public string[] GrabKeywords(dynamic captcha)
         {

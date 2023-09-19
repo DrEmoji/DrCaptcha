@@ -45,7 +45,6 @@ namespace DrCaptcha.Modules
                 string captchaReq = captcha["c"]["req"].ToString();
                 c = $"{{\"type\":\"hsw\",\"req\":\"{captchaReq}\"}}";
                 hsw = API.GetHsw(Client, captchaReq).Result;
-                Console.WriteLine(captcha);
                 string[] keywords = Recognizer.GrabKeywords(captcha);
                 dynamic captchaResponse;
                 Dictionary<string, string> answers = new Dictionary<string, string>();
