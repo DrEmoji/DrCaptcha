@@ -23,10 +23,7 @@ namespace DrCaptcha.Modules
             public string Solve(string website, string sitekey)
             {
                 HttpClient Client = null;
-                if (WebProxy != null)
-                    Client = Extra.CreateClient(WebProxy);
-                else
-                    Client = Extra.CreateClient();
+                if (WebProxy != null) Client = Extra.CreateClient(WebProxy); else Client = Extra.CreateClient();
                 string host = Extra.GetHost(website);
                 string version = API.GetVersion(Client).Result;
                 dynamic captcha;
@@ -37,28 +34,28 @@ namespace DrCaptcha.Modules
                     dynamic siteData = API.CheckSiteKey(Client, version, host, sitekey).Result;
                     string siteReq = siteData["c"]["req"].ToString();
                     c = $"{{\"type\":\"hsw\",\"req\":\"{siteReq}\"}}";
-                    hsw = API.GetHsw(Client, siteReq).Result;
+                    hsw = API.GetHsw(siteReq);
                     captcha = API.GetCaptcha(Client, version, host, sitekey, c, hsw, motionData).Result;
                     if (captcha["request_type"].ToString() == "image_label_binary") break;
                 }
-                string key = captcha["key"];
+                string key = captcha["key"];    
                 string captchaReq = captcha["c"]["req"].ToString();
                 c = $"{{\"type\":\"hsw\",\"req\":\"{captchaReq}\"}}";
-                hsw = API.GetHsw(Client, captchaReq).Result;
+                hsw = API.GetHsw(captchaReq);
                 string[] keywords = Recognizer.GrabKeywords(captcha);
                 dynamic captchaResponse;
                 Dictionary<string, string> answers = new Dictionary<string, string>();
                 foreach (dynamic task in captcha["tasklist"])
                 {
                     string[] answer = Recognizer.Recognize(task, keywords);
-                    Console.WriteLine(answer[0] + " - " + answer[1]);
+                    //Console.WriteLine(answer[0] + " - " + answer[1]);
                     answers.Add(answer[0], answer[1]);
                 }
                 captchaResponse = API.SubmitCaptcha(Client, version, host, sitekey, key, c, hsw, motionData, answers).Result;
                 if (captchaResponse["pass"] == true)
                     return captchaResponse["generated_pass_UUID"];
                 else
-                    Console.WriteLine("Failed.. Retrying...");
+                    //Console.WriteLine("Failed.. Retrying...");
                     return Solve(website, sitekey);
             }
         }

@@ -11,7 +11,7 @@ namespace DrCaptcha.Utils.HCaptcha
 {
     internal class Extra
     {
-        private static char[] numbers = "123456789".ToCharArray();
+        private readonly static char[] numbers = "123456789".ToCharArray();
         public static long GetTimestamp()
         {
             return ((DateTimeOffset)DateTime.UtcNow.ToUniversalTime()).ToUniversalTime().ToUnixTimeMilliseconds();

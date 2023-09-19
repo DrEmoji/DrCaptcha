@@ -53,15 +53,30 @@ namespace DrCaptcha.Utils.HCaptcha
             return JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result);
         }
 
-        public static async Task<string> GetHsw(HttpClient Client, string req)
+        public static string GetHsw(string req)
         {
             string payload = JsonConvert.SerializeObject(new
             {
                 request = req
             });
-            var content = new StringContent(payload, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await Client.PostAsync(new Uri("https://hsw.dremoji.repl.co"), content);
-            return JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result)["hsw"];
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://hsw.dremoji.repl.co");
+            request.Method = "POST";
+            request.ContentType = "application/json";
+
+            using (StreamWriter writer = new StreamWriter(request.GetRequestStream()))
+            {
+                writer.Write(payload);
+                writer.Flush();
+            }
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+            {
+                string responseText = reader.ReadToEnd();
+                dynamic responseData = JsonConvert.DeserializeObject<dynamic>(responseText);
+                return responseData["hsw"];
+            }
         }
 
         public static async Task<dynamic> SubmitCaptcha(HttpClient Client, string version, string host, string sitekey, string key, string c, string n, string motiondata, Dictionary<string, string> answers)

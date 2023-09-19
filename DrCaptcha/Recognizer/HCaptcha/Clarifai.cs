@@ -13,13 +13,15 @@ namespace DrCaptcha.Recognizer.HCaptcha
     public class ClarifaiRecognizer : HCaptchaRecognizer
     {
         public static string apiKey { get; set; }
+        public static float threshold { get; set; }
         internal static string modelId = "general-image-recognition";
         internal static string modelversion = "aa7f35c01e0642fda5cf400f543e7c40";
-        internal static List<string> GeneralKeywords = new List<string> { "still life", "summer", "no person", "isolated", "glazed", "reflection", "bright", "shape", "isolated", "dark", "indoors", "decoration", "image", "art", "round out", "one", "delicious" };
+        internal static List<string> GeneralKeywords = new List<string> { "still life", "summer", "square", "design", "window", "monochrome", "no person", "isolated", "glazed", "reflection", "bright", "shape", "isolated", "dark", "indoors", "decoration", "image", "art", "round out", "one", "delicious" };
 
-        public ClarifaiRecognizer(string apikey)
+        public ClarifaiRecognizer(string apikey, float Threshold = 0.97f)
         {
             apiKey = apikey ?? string.Empty;
+            threshold = Threshold;
         }
 
         public string[] GrabKeywords(dynamic captcha)
@@ -59,15 +61,15 @@ namespace DrCaptcha.Recognizer.HCaptcha
                 string responseContent = streamReader.ReadToEnd();
                 dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
                 List<string> keywords = new List<string>();
-                string questionkeyword = Extra.GetKeyword(captcha);
-                Console.WriteLine(questionkeyword);
-                keywords.Add(questionkeyword);
+                //string questionkeyword = Extra.GetKeyword(captcha);
+                //Console.WriteLine(questionkeyword);
+                keywords.Add(Extra.GetKeyword(captcha));
                 foreach (dynamic concept in jsonResponse["outputs"][0]["data"]["concepts"])
                 {
-                    if (float.Parse(concept["value"].ToString()) >= 0.82 && !GeneralKeywords.Contains(concept["name"].ToString()))
+                    if (float.Parse(concept["value"].ToString()) >= threshold && !GeneralKeywords.Contains(concept["name"].ToString()))
                     {
                         keywords.Add(concept["name"].ToString());
-                        Console.WriteLine(concept["name"].ToString());
+                        //Console.WriteLine(concept["name"].ToString());
                     }
                 }
                 return keywords.ToArray();
